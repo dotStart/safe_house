@@ -76,5 +76,5 @@ jobs:
         with:
           name: server
           path: |
-            - target/release/safe_house
-            - target/release/safe_house.exe
+            target/release/safe_house
+            target/release/safe_house.exe
