@@ -78,7 +78,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.toolchain }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Prepare cross
-        run: cargo install cross --git https://github.com/cross-rs/cross
+        run: cargo install --force cross --git https://github.com/cross-rs/cross
 
       - name: Build
         run: cross build --target ${{ matrix.toolchain }} --features ui --package safe_house --bin safe_house --profile release --verbose
