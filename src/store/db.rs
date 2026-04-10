@@ -257,6 +257,7 @@ impl<'a> RawTransaction<'a> {
         Ok(())
     }
 
+    #[allow(unused)]
     pub fn commit(self) -> Result<(), StoreError> {
         self.tx
             .commit()
@@ -265,6 +266,7 @@ impl<'a> RawTransaction<'a> {
         Ok(())
     }
 
+    #[allow(unused)]
     pub fn rollback(self) -> Result<(), StoreError> {
         self.tx
             .rollback()
