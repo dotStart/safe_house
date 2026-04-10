@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: web/node_modules
-          key: ${{ runner.os }}-node-modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('web/package-lock.json') }}
 
       - name: Install Dependencies
         working-directory: ./web
