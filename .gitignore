@@ -1,0 +1,5 @@
+# Cargo output directory
+/target
+
+# Default rocksdb location
+/data

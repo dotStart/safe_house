@@ -1,0 +1,89 @@
+/*
+ * This file is part of safe_house - a simple E2E encrypted file sharing utility.
+ * Copyright (c) 2026 Yuki Donath <https://dotstart.tv> and other contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+@import '@picocss/pico/css/pico.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+
+:root {
+  --pico-font-family-monospace: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace, var(--pico-font-family-emoji);
+  --pico-font-family: var(--pico-font-family-monospace);
+  --pico-font-size: 95%;
+
+  --safehouse-success: #01ad29;
+  --safehouse-warning: #ad7701;
+  --safehouse-danger: #ff0191;
+}
+
+p.success,
+span.success,
+small.success,
+strong.success {
+  --pico-color: var(--safehouse-success);
+}
+
+button.success {
+  --pico-primary: var(--safehouse-success);
+  --pico-primary-background: var(--safehouse-success);
+  --pico-border-color: var(--safehouse-success);
+
+  --pico-primary-hover: #79ff9f;
+  --pico-primary-hover-background: #79ff9f;
+}
+
+progress.success {
+  --pico-progress-color: var(--safehouse-success);
+}
+
+p.warning,
+span.warning,
+small.warning,
+strong.warning {
+  --pico-color: var(--safehouse-warning);
+}
+
+button.warning {
+  --pico-primary: var(--safehouse-warning);
+  --pico-primary-background: var(--safehouse-warning);
+  --pico-border-color: var(--safehouse-warning);
+
+  --pico-primary-hover: #ffb579;
+  --pico-primary-hover-background: #ffb579;
+}
+
+progress.warning {
+  --pico-progress-color: var(--safehouse-warning);
+}
+
+p.danger,
+span.danger,
+small.danger,
+strong.danger {
+  --pico-color: var(--safehouse-danger);
+}
+
+button.danger {
+  --pico-primary: var(--safehouse-danger);
+  --pico-primary-background: var(--safehouse-danger);
+  --pico-border-color: var(--safehouse-danger);
+
+  --pico-primary-hover: #ff79c9;
+  --pico-primary-hover-background: #ff79c9;
+}
+
+progress.danger {
+  --pico-progress-color: var(--safehouse-danger);
+}
