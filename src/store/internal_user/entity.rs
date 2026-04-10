@@ -72,7 +72,6 @@ impl<'a> FromParam<'a> for Username<'a> {
 pub struct Parameters {
     pub display_name: Option<String>,
     pub password_hash: String,
-    pub is_password_expired: bool,
     pub permissions: PermissionFlag,
 }
 

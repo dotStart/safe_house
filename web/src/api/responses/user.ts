@@ -18,6 +18,5 @@
 export interface ViewableUserParameters {
   readonly name: string;
   readonly display_name: string;
-  readonly is_password_expired: boolean;
   readonly permissions: number;
 }

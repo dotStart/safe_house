@@ -46,7 +46,6 @@ export class UserClient {
       name: name,
       display_name: display_name,
       password: password,
-      is_password_expired: false,
       permissions: permissions
     };
 
@@ -70,7 +69,6 @@ export class UserClient {
     const request: UpdateUserParameters = {
       display_name: display_name,
       new_password: password,
-      is_password_expired: false,
       permissions: permissions
     };
 

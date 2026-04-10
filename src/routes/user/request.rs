@@ -49,10 +49,6 @@ pub struct CreateParameters<'a> {
     /// in.
     pub password: String,
 
-    /// Indicates whether the password has expired and must thus be changed when logging in before
-    /// a full access token is granted.
-    pub is_password_expired: bool,
-
     /// Indicates which permissions are assigned to the newly created user.
     pub permissions: PermissionFlag,
 }

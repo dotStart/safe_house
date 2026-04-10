@@ -57,7 +57,6 @@ pub fn initial_user(
         &Parameters {
             display_name: params.display_name.clone(),
             password_hash,
-            is_password_expired: false,
             permissions: PermissionFlag::All,
         },
     ) {

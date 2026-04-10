@@ -19,14 +19,12 @@ export interface CreateUserParameters {
   readonly name: string;
   readonly display_name: string | null;
   readonly password: string;
-  readonly is_password_expired: boolean;
   readonly permissions: number;
 }
 
 export interface UpdateUserParameters {
   readonly display_name: string | null;
   readonly new_password: string | null;
-  readonly is_password_expired: boolean;
   readonly permissions: number | null;
 }
 

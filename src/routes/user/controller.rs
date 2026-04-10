@@ -87,7 +87,6 @@ pub fn create(
     let mut user = Parameters {
         display_name: params.display_name.clone(),
         password_hash: "".to_string(),
-        is_password_expired: params.is_password_expired,
         permissions: params.permissions,
     };
 
