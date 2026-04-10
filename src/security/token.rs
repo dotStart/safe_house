@@ -107,7 +107,7 @@ impl Display for InternalTokenError {
 
 pub struct Token<'a>(Cow<'a, str>);
 
-impl<'a> Token<'a> {
+impl Token<'_> {
     pub fn of(value: &str) -> Self {
         Token(Cow::Owned(value.to_owned()))
     }

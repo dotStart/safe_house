@@ -305,11 +305,11 @@ pub fn delete_self(
 }
 
 #[delete("/<name>", rank = 2)]
-pub fn delete_other<'a>(
+pub fn delete_other(
     _f: &Feature<feature::auth::InternalAuth>,
     _p: &Permission<DeleteAnyUser>,
     store: &State<Repository>,
-    name: Username<'a>,
+    name: Username,
 ) -> Result<Status, UserError> {
     store.delete(&name).map_err(|e| {
         error!("Failed to delete user from database: {}", e);

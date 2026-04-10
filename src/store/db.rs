@@ -288,7 +288,7 @@ impl<'a, B: DBAccess, D: Document> Iterator<'a, B, D> {
     }
 }
 
-impl<'a, B: DBAccess, D: Document> std::iter::Iterator for Iterator<'a, B, D> {
+impl<B: DBAccess, D: Document> std::iter::Iterator for Iterator<'_, B, D> {
     type Item = Result<KV<D>, StoreError>;
 
     fn next(&mut self) -> Option<Self::Item> {

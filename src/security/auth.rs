@@ -25,7 +25,6 @@ use rocket::Request;
 use serde::Serialize;
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
-use std::string::ToString;
 use std::sync::Arc;
 
 pub const ANONYMOUS_ID: &'static str = "anonymous";
@@ -114,7 +113,7 @@ pub struct User<'a> {
     permissions: PermissionFlag,
 }
 
-impl<'a> User<'a> {
+impl User<'_> {
     pub fn new(id: &str, display_name: Option<String>, permissions: PermissionFlag) -> Self {
         User {
             id: Cow::Owned(id.to_owned()),

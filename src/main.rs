@@ -15,6 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#![deny(redundant_imports)]
+#![deny(redundant_lifetimes)]
+#![deny(unit_bindings)]
+#![deny(unsafe_code)]
+#![deny(unused_crate_dependencies)]
+#![deny(unused_import_braces)]
+#![deny(unused_lifetimes)]
+
 #[macro_use]
 extern crate rocket;
 

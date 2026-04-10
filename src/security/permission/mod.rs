@@ -147,7 +147,7 @@ impl<'de> Deserialize<'de> for PermissionFlag {
 
 struct PermissionFlagVisitor;
 
-impl<'de> Visitor<'de> for PermissionFlagVisitor {
+impl Visitor<'_> for PermissionFlagVisitor {
     type Value = PermissionFlag;
 
     fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
