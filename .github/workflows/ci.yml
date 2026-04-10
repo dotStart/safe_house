@@ -1,4 +1,4 @@
-name: Build Server
+name: Build & Test
 
 on:
   push:
@@ -8,6 +8,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   frontend:
@@ -20,10 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 24.x
 
       - name: Cache npm dependencies
         id: cache-npm
