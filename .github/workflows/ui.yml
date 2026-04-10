@@ -1,0 +1,44 @@
+name: Web UI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 24.x ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Cache npm dependencies
+        id: cache-npm
+        uses: actions/cache@v5
+        with:
+          path: web/node_modules
+          key: ${{ runner.os }}-node-modules
+
+      - name: Install Dependencies
+        working-directory: ./web
+        run: |
+          npm install
+      - name: Build
+        working-directory: ./web
+        run: |
+          npm run build
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ui
+          path: web/dist/
