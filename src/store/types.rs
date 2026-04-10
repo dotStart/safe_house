@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 use chrono::{DateTime, Utc};
-use rand::RngCore;
 use rocket::request::FromParam;
 use rocket::serde::de::Error;
 use rocket::serde::{Deserializer, Serializer};
@@ -26,6 +25,8 @@ use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU64, Ordering};
+use rand::Rng;
+use rand::rngs::ThreadRng;
 
 #[derive(Clone, UriDisplayPath, Debug)]
 pub struct Clover<'a>(Cow<'a, str>);
@@ -43,7 +44,7 @@ impl Clover<'_> {
 
     pub fn generate() -> Self {
         static SEQUENCE: AtomicU64 = AtomicU64::new(0);
-        let mut rng = rand::thread_rng();
+        let mut rng = ThreadRng::default();
 
         let time = Utc::now();
         let sequence = SEQUENCE.fetch_add(1, Ordering::Relaxed);

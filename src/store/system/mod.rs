@@ -21,9 +21,10 @@ use crate::store::db::RawStore;
 use crate::store::error::StoreError;
 use crate::store::system::error::SystemStoreError;
 use byteorder::{BigEndian, ByteOrder};
-use rand::{thread_rng, RngCore};
 use rocksdb::TransactionDB;
 use std::sync::Arc;
+use rand::Rng;
+use rand::rngs::ThreadRng;
 
 pub const FAMILY_NAME: &'static str = "safe_house";
 
@@ -81,7 +82,7 @@ impl Repository {
         }
 
         let mut key = Vec::<u8>::with_capacity(32);
-        let mut rng = thread_rng();
+        let mut rng = ThreadRng::default();
         rng.fill_bytes(key.as_mut());
 
         tx.store(JWT_SECRET_KEY, &key)?;
@@ -92,7 +93,7 @@ impl Repository {
 
     pub fn generate_jwt_secret(&self) -> Result<Vec<u8>, StoreError> {
         let mut key = Vec::<u8>::with_capacity(32);
-        let mut rng = thread_rng();
+        let mut rng = ThreadRng::default();
         rng.fill_bytes(key.as_mut());
 
         self.store.store(JWT_SECRET_KEY, &key)?;
