@@ -17,7 +17,6 @@
  */
 use config::{Map, Value, ValueKind};
 use rocket::serde::Deserialize;
-use rocket::Data;
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct Database {
