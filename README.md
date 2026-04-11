@@ -50,6 +50,40 @@ Additionally, safe_house currently permits the direct configuration of its under
 by `ROCKET_`. Refer to the [official documentation](https://rocket.rs/guide/v0.4/configuration/) for
 more information.
 
+## Building
+
+safe_house may be built via `cargo` just like any other rust application. Please note, however, that
+by default, the web UI is excluded from the build in order to simplify development.
+
+To run the application in development mode, you may use the following command:
+
+```shell
+cargo run --package safe_house --bin safe_house --profile dev
+```
+
+equally, the web UI may be served using `npm` from [its project directory](web/) using the following
+command:
+
+```shell
+npm run dev
+```
+
+If you wish to build a full executable (including its UI), you will first have to build the web UI
+from its directory using `npm`:
+
+```shell
+npm run build
+```
+
+and then build the self-contained executable using `cargo`:
+
+```shell
+cargo build --features ui --package safe_house --bin safe_house --profile release
+```
+
+The resulting executables may be found in the `target/release` directory (or `target/dev` when
+using the `dev` profile).
+
 ## License
 
 ```
