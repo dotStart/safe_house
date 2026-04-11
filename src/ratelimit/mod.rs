@@ -20,13 +20,13 @@ use crate::ratelimit::store::RateLimitResult;
 #[cfg(feature = "ratelimit")]
 use rocket::fairing::AdHoc;
 #[cfg(feature = "ratelimit")]
+use rocket::fairing::Info;
+#[cfg(feature = "ratelimit")]
 use rocket::fairing::Kind;
 #[cfg(feature = "ratelimit")]
 use rocket::http::Header;
 #[cfg(feature = "ratelimit")]
 use rocket::{Request, Response};
-#[cfg(feature = "ratelimit")]
-use rocket::fairing::Info;
 
 pub mod guard;
 pub mod policy;
@@ -64,7 +64,7 @@ impl rocket::fairing::Fairing for Fairing {
                 res.set_header(Header::new("X-RateLimit-Limit", limit.to_string()));
                 res.set_header(Header::new("X-RateLimit-Remaining", remaining.to_string()));
 
-                if ((*remaining as f32) / (*limit as f32) <= 0.25f32) {
+                if (*remaining as f32) / (*limit as f32) <= 0.25f32 {
                     res.set_header(Header::new("X-RateLimit-NearLimit", "true"));
                 }
             }
