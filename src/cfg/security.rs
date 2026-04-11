@@ -22,38 +22,26 @@ use std::fmt::{Display, Formatter};
 #[derive(Clone, Deserialize, Debug)]
 pub struct Security {
     pub auth_method: AuthMethod,
-    pub key_derivation_rounds: u32,
 }
 
 impl Security {
     pub fn defaults() -> Self {
         Self {
             auth_method: AuthMethod::DEFAULT,
-            key_derivation_rounds: 600_000,
         }
     }
 
     pub fn dump_to_log(&self) {
         info!("   >> security.auth_method: {}", self.auth_method);
-        info!(
-            "   >> security.key_derivation_rounds: {}",
-            self.key_derivation_rounds
-        );
     }
 
     pub fn collect(&self) -> Value {
         Value::new(
             None,
-            ValueKind::Table(Map::from([
-                (
-                    "auth_method".to_string(),
-                    Value::new(None, ValueKind::String(self.auth_method.to_string())),
-                ),
-                (
-                    "key_derivation_rounds".to_string(),
-                    Value::new(None, ValueKind::U64(self.key_derivation_rounds as u64)),
-                ),
-            ])),
+            ValueKind::Table(Map::from([(
+                "auth_method".to_string(),
+                Value::new(None, ValueKind::String(self.auth_method.to_string())),
+            )])),
         )
     }
 }
