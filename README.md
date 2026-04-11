@@ -1,1 +1,60 @@
-# safehouse
+# safe_house
+
+**This application is still very early in its development and may include a variety of bugs, 
+constraints and other issues (in fact it is my first Rust application) - USE WITH EXTREME CAUTION**
+
+A simple self-hosted end-to-end encrypted text and file sharing service.
+
+## Screenshots
+
+| Upload                                                 | Document                                             | Administration                                      |
+|--------------------------------------------------------|------------------------------------------------------|-----------------------------------------------------|
+| [![Upload View][screenshot_upload]][screenshot_upload] | [![Document View][screenshot_view]][screenshot_view] | [![Admin View][screenshot_admin]][screenshot_admin] |
+
+[screenshot_upload]: screenshots/upload.png
+
+[screenshot_view]: screenshots/view.png
+
+[screenshot_admin]: screenshots/admin.png
+
+## Running
+
+### Executable
+
+```shell
+./safe_house
+```
+
+### Docker
+
+```shell
+docker run -p 8000:8000 -v /my/path:/app/data ghcr.io/dotstart/safe_house:latest
+```
+
+## Configuration
+
+By default, safe_house will attempt to load `safe_house.toml` within the current working
+directory. If no such file can be found, safe defaults are assumed. Additionally, configuration
+parameters may be set through environment variables prefixed with `SAFEHOUSE_`.
+
+Refer to the [example configuration file](safe_house.example.toml) for information on the available
+options as well as their environment variable versions.
+
+## License
+
+```
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+```
+
+A [full version of the license](LICENSE.md) is included within this repository.
