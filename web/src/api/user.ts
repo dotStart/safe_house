@@ -131,6 +131,7 @@ export class UserClient {
   }
 }
 
+// FIXME: TypeScript numbers are limited to 32-bit by default - This system needs to be replaced
 export enum Permission {
   ViewDocument = 1 << 0,
   CreateDocument = 1 << 1,
@@ -142,13 +143,15 @@ export enum Permission {
   EditOwnUser = 1 << 10,
   EditAnyUser = 1 << 11,
   DeleteOwnUser = 1 << 12,
-  DeleteAnyUser = 1 << 13
+  DeleteAnyUser = 1 << 13,
+
+  BypassRateLimit = 1 << 24,
 }
 
 export enum PermissionGroup {
   Admin = Permission.ViewDocument | Permission.ViewUser | Permission.CreateUser | Permission.EditAnyUser | Permission.DeleteAnyUser,
   User = Permission.CreateDocument | Permission.DeleteOwnDocument | Permission.EditOwnUser | Permission.DeleteOwnUser,
-  All = PermissionGroup.Admin | PermissionGroup.User | Permission.DeleteAnyDocument
+  All = PermissionGroup.Admin | PermissionGroup.User | Permission.DeleteAnyDocument | Permission.BypassRateLimit
 }
 
 export type PermissionKey = string;

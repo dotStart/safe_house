@@ -94,8 +94,15 @@ impl PermissionFlag {
             | Self::DeleteAnyUser.0,
     );
 
+    pub const BypassRateLimit: PermissionFlag = PermissionFlag(1 << 24);
+    pub const AllSystem: PermissionFlag = PermissionFlag(Self::BypassRateLimit.0);
+
     pub const None: PermissionFlag = PermissionFlag(0);
-    pub const All: PermissionFlag = PermissionFlag(Self::AllDocument.0 | Self::AllUser.0);
+    pub const All: PermissionFlag =
+        PermissionFlag(Self::AllDocument.0 | Self::AllUser.0 | Self::AllSystem.0);
+
+    pub const PresetAuthenticationNone: PermissionFlag =
+        PermissionFlag(Self::AllDocument.0 | Self::AllUser.0);
 
     #[inline]
     pub fn contains(&self, other: &PermissionFlag) -> bool {

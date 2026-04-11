@@ -42,7 +42,7 @@ impl auth::AuthenticationProvider for AuthenticationProvider {
     }
 
     fn anonymous(&self) -> User<'_> {
-        User::anonymous(PermissionFlag::All)
+        User::anonymous(PermissionFlag::PresetAuthenticationNone)
     }
 
     async fn display_name(&self, _user_id: &str) -> Option<String> {
