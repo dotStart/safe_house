@@ -1,0 +1,55 @@
+[database]
+# Database Path
+# -------------
+# Location at which the database shall be stored.
+#
+# Environment: SAFEHOUSE_DATABASE_PATH
+# Default: ./data
+path = "./data"
+
+# Database Compression
+# --------------------
+# Whether the database shall be compressed using zlib.
+#
+# Environment: SAFEHOUSE_DATABASE_COMPRESS
+# Default: true
+compress = true
+
+[security]
+# Authentication Method
+# ---------------------
+# Method which shall be used for authenticating users.
+#
+# The following options are currently available:
+#
+#   - none     => all features (apart from the instance administration) are available without
+#                 authentication - USE WITH GREAT CARE
+#
+#   - internal => authentication is performed within safe_house through an internal user list
+#
+# Environment: SAFEHOUSE_SECURITY_AUTH_METHOD
+# Default: internal
+auth_method = "internal"
+
+[document]
+# Expiration Job Frequency
+# ------------------------
+# Period at which document expiration is performed (in minutes).
+#
+# Environment: SAFEHOUSE_DOCUMENT_EXPIRATION_JOB_MINUTES
+# Default: 30
+expiration_job_minutes = 30
+
+# Key Derivation Rounds
+# ---------------------
+# Rounds performed for the key derivation algorithm on the client side when decrypting documents.
+#
+# Higher values cause key derivation to take longer but increase resilience against attempts to
+# brute force the key material.
+#
+# Note: This value is persisted within documents. As such, changes to this value are only reflected
+#       in newly created documents.
+#
+# Environment: SAFEHOUSE_DOCUMENT_KEY_DERIVATION_ROUNDS
+# Default: 600_000
+key_derivation_rounds = 600000
