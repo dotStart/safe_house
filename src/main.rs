@@ -47,7 +47,7 @@ mod store;
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
     let s = match Config::builder()
-        .add_source(ApplicationConfig::defaults())
+        .add_source(ApplicationConfig::default())
         .add_source(File::with_name(ApplicationConfig::LOCATION).required(false))
         .add_source(
             Environment::with_prefix("safehouse")

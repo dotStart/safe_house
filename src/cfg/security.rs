@@ -25,12 +25,6 @@ pub struct Security {
 }
 
 impl Security {
-    pub fn defaults() -> Self {
-        Self {
-            auth_method: AuthMethod::DEFAULT,
-        }
-    }
-
     pub fn dump_to_log(&self) {
         info!("   >> security.auth_method: {}", self.auth_method);
     }
@@ -43,6 +37,14 @@ impl Security {
                 Value::new(None, ValueKind::String(self.auth_method.to_string())),
             )])),
         )
+    }
+}
+
+impl Default for Security {
+    fn default() -> Self {
+        Self {
+            auth_method: AuthMethod::DEFAULT,
+        }
     }
 }
 

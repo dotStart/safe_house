@@ -25,7 +25,7 @@ use crate::cfg::security::Security;
 use config::{ConfigError, Map, Source, Value};
 use rocket::serde::Deserialize;
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Default, Clone, Deserialize, Debug)]
 pub struct ApplicationConfig {
     pub database: Database,
     pub security: Security,
@@ -34,14 +34,6 @@ pub struct ApplicationConfig {
 
 impl ApplicationConfig {
     pub const LOCATION: &'static str = "safe_house.toml";
-
-    pub fn defaults() -> Self {
-        Self {
-            database: Database::defaults(),
-            security: Security::defaults(),
-            document: Document::defaults(),
-        }
-    }
 
     pub fn dump_to_log(&self) {
         info!("safe_house Configuration:");
