@@ -29,7 +29,7 @@ extern crate rocket;
 use crate::cfg::security::AuthMethod;
 use crate::cfg::ApplicationConfig;
 use crate::security::token::InternalTokenProvider;
-use config::{Config, Environment, File};
+use config::{Case, Config, Environment, File};
 use rocket::fairing::AdHoc;
 use rocket::tokio::time::interval;
 use rocket::{tokio, Build, Rocket};
@@ -49,7 +49,11 @@ async fn main() -> Result<(), rocket::Error> {
     let s = match Config::builder()
         .add_source(ApplicationConfig::defaults())
         .add_source(File::with_name(ApplicationConfig::LOCATION).required(false))
-        .add_source(Environment::with_prefix("SAFEHOUSE"))
+        .add_source(
+            Environment::with_prefix("safehouse")
+                .separator("_")
+                .convert_case(Case::Snake),
+        )
         .build()
     {
         Ok(s) => s,
