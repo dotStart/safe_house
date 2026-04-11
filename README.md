@@ -36,6 +36,11 @@ There are multiple supported methods of deployment:
 docker run -p 8000:8000 -v /my/path:/app/data ghcr.io/dotstart/safe_house:latest
 ```
 
+The following tags are made available:
+
+ - `latest` - latest release (if any)
+ - `unstable` - most recent changes
+
 ## Configuration
 
 By default, safe_house will attempt to load `safe_house.toml` within the current working
