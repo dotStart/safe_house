@@ -19,6 +19,11 @@ A simple self-hosted end-to-end encrypted text and file sharing service.
 
 ## Running
 
+safe_house ships as a self-contained single executable and will listen to HTTP requests on 
+port `8000` by default.
+
+There are multiple supported methods of deployment:
+
 ### Executable
 
 ```shell
@@ -35,10 +40,15 @@ docker run -p 8000:8000 -v /my/path:/app/data ghcr.io/dotstart/safe_house:latest
 
 By default, safe_house will attempt to load `safe_house.toml` within the current working
 directory. If no such file can be found, safe defaults are assumed. Additionally, configuration
-parameters may be set through environment variables prefixed with `SAFEHOUSE_`.
+parameters may be set through environment variables prefixed by `SAFEHOUSE_`.
 
 Refer to the [example configuration file](safe_house.example.toml) for information on the available
 options as well as their environment variable versions.
+
+Additionally, safe_house currently permits the direct configuration of its underlying web framework 
+[rocket](https://rocket.rs) through `rocket.toml` or, alternatively, environment variables prefixed
+by `ROCKET_`. Refer to the [official documentation](https://rocket.rs/guide/v0.4/configuration/) for
+more information.
 
 ## License
 
