@@ -1,11 +1,11 @@
 FROM alpine:3.23
 
 COPY safe_house /usr/bin/
-RUN mkdir /app && \
+RUN mkdir -p /app/data && \
     apk add --no-cache curl && \
     adduser -D safehouse && \
     chmod +x /usr/bin/safe_house && \
-    chown safehouse:safehouse /app
+    chown -R safehouse:safehouse /app
 
 EXPOSE 8000
 VOLUME /app/data
