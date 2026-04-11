@@ -40,6 +40,7 @@ use std::time::Duration;
 mod assets;
 mod cfg;
 mod feature;
+mod ratelimit;
 mod routes;
 mod security;
 mod store;
@@ -124,6 +125,7 @@ async fn main() -> Result<(), rocket::Error> {
         }
     });
 
+    r = attach_rate_limit(&config, r);
     r = attach_web_ui(r);
 
     r = r
@@ -137,6 +139,20 @@ async fn main() -> Result<(), rocket::Error> {
     let _rocket = r.launch().await?;
 
     Ok(())
+}
+
+#[cfg(feature = "ratelimit")]
+pub fn attach_rate_limit(cfg: &ApplicationConfig, rocket: Rocket<Build>) -> Rocket<Build> {
+    if !cfg.ratelimit.enabled {
+        return rocket;
+    }
+
+    rocket.attach(ratelimit::stage())
+}
+
+#[cfg(not(feature = "ratelimit"))]
+pub fn attach_rate_limit(cfg: &ApplicationConfig, rocket: Rocket<Build>) -> Rocket<Build> {
+    rocket
 }
 
 #[cfg(feature = "ui")]

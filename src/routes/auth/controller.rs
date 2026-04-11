@@ -17,6 +17,8 @@
  */
 use crate::feature::auth::InternalAuth;
 use crate::feature::Feature;
+use crate::ratelimit;
+use crate::ratelimit::guard::RateLimit;
 use crate::routes::auth::error::LoginError;
 use crate::routes::auth::request::LoginParameters;
 use crate::security::auth::{AuthenticationManager, User};
@@ -27,6 +29,7 @@ use rocket::State;
 #[post("/login", data = "<params>")]
 pub async fn login(
     _f: &Feature<InternalAuth>,
+    _r: RateLimit<ratelimit::policy::auth::Login>,
     auth: &State<AuthenticationManager>,
     params: Json<LoginParameters<'_>>,
 ) -> Result<Json<String>, LoginError> {

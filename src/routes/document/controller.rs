@@ -15,8 +15,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+use crate::cfg::ApplicationConfig;
 use crate::feature::auth::InternalAuth;
 use crate::feature::Feature;
+use crate::ratelimit;
+use crate::ratelimit::guard::RateLimit;
 use crate::routes::document::error::DocumentError;
 use crate::routes::document::request::UploadBody;
 use crate::routes::document::response::{Document, DocumentMetadata};
@@ -33,11 +36,11 @@ use chrono::{TimeDelta, Utc};
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
-use crate::cfg::ApplicationConfig;
 
 #[post("/", data = "<body>")]
 pub fn create(
     _p: &Permission<CreateDocument>,
+    _r: RateLimit<ratelimit::policy::document::CreateDocument>,
     config: &State<ApplicationConfig>,
     state: &State<Repository>,
     user: User,
@@ -120,6 +123,7 @@ pub fn list_all<'a>(
 
 #[get("/<id>/metadata")]
 pub fn metadata<'a>(
+    _r: RateLimit<ratelimit::policy::document::ViewDocument>,
     registry: &State<Repository>,
     id: Clover<'a>,
     user: User,
@@ -144,6 +148,7 @@ pub fn metadata<'a>(
 
 #[get("/<id>")]
 pub async fn get<'a>(
+    _r: RateLimit<ratelimit::policy::document::ViewDocument>,
     auth_manager: &State<AuthenticationManager>,
     registry: &State<Repository>,
     id: Clover<'a>,
