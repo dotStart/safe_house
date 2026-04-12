@@ -42,22 +42,95 @@ ul li {
       <header>document</header>
 
       <ul>
-        <li><PermissionMark :permission="Permission.ViewDocument" description="view all documents" :mask="props.mask">view</PermissionMark></li>
-        <li><PermissionMark :permission="Permission.CreateDocument" description="create documents" :mask="props.mask">create</PermissionMark></li>
-        <li><PermissionMark :permission="Permission.DeleteOwnDocument" description="delete own documents" :mask="props.mask">delete (own)</PermissionMark></li>
-        <li><PermissionMark :permission="Permission.DeleteAnyDocument" description="delete any document" :mask="props.mask">delete (any)</PermissionMark></li>
+        <li>
+          <PermissionMark
+            :permission="Permission.ViewDocument"
+            description="view all documents"
+            :mask="props.mask">view
+          </PermissionMark>
+        </li>
+        <li>
+          <PermissionMark
+            :permission="Permission.CreateDocument"
+            description="create documents"
+            :mask="props.mask">create
+          </PermissionMark>
+        </li>
+        <li>
+          <PermissionMark
+            :permission="Permission.DeleteOwnDocument"
+            description="delete own documents"
+            :mask="props.mask">delete (own)
+          </PermissionMark>
+        </li>
+        <li>
+          <PermissionMark
+            :permission="Permission.DeleteAnyDocument"
+            description="delete any document"
+            :mask="props.mask">delete (any)
+          </PermissionMark>
+        </li>
       </ul>
     </article>
     <article>
       <header>user</header>
 
       <ul>
-        <li><PermissionMark :permission="Permission.ViewUser" description="view all users" :mask="props.mask">view</PermissionMark></li>
-        <li><PermissionMark :permission="Permission.CreateUser" description="create user" :mask="props.mask">create</PermissionMark></li>
-        <li><PermissionMark :permission="Permission.EditOwnUser" description="edit own user" :mask="props.mask">edit (own)</PermissionMark></li>
-        <li><PermissionMark :permission="Permission.EditAnyUser" description="edit any user" :mask="props.mask">edit (any)</PermissionMark></li>
-        <li><PermissionMark :permission="Permission.DeleteOwnUser" description="delete own user" :mask="props.mask">delete (own)</PermissionMark></li>
-        <li><PermissionMark :permission="Permission.DeleteAnyUser" description="delete any user" :mask="props.mask">delete (any)</PermissionMark></li>
+        <li>
+          <PermissionMark
+            :permission="Permission.ViewUser"
+            description="view all users"
+            :mask="props.mask">view
+          </PermissionMark>
+        </li>
+        <li>
+          <PermissionMark
+            :permission="Permission.CreateUser"
+            description="create user"
+            :mask="props.mask">create
+          </PermissionMark>
+        </li>
+        <li>
+          <PermissionMark
+            :permission="Permission.EditOwnUser"
+            description="edit own user"
+            :mask="props.mask">edit (own)
+          </PermissionMark>
+        </li>
+        <li>
+          <PermissionMark
+            :permission="Permission.EditAnyUser"
+            description="edit any user"
+            :mask="props.mask">edit (any)
+          </PermissionMark>
+        </li>
+        <li>
+          <PermissionMark
+            :permission="Permission.DeleteOwnUser"
+            description="delete own user"
+            :mask="props.mask">delete (own)
+          </PermissionMark>
+        </li>
+        <li>
+          <PermissionMark
+            :permission="Permission.DeleteAnyUser"
+            description="delete any user"
+            :mask="props.mask">delete (any)
+          </PermissionMark>
+        </li>
+      </ul>
+    </article>
+    <article>
+      <header>system</header>
+
+      <ul>
+        <li>
+          <PermissionMark
+            :permission="Permission.BypassRateLimit"
+            description="bypass all endpoint ratelimits"
+            :mask="props.mask">bypass ratelimit
+          </PermissionMark>
+        </li>
       </ul>
     </article>
   </div>
