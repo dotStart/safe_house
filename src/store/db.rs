@@ -152,6 +152,12 @@ impl RawStore {
     }
 }
 
+impl Clone for RawStore {
+    fn clone(&self) -> Self {
+        RawStore::new(&self.db, self.family.as_str())
+    }
+}
+
 pub struct Transaction<'a, D: Document> {
     cf: Arc<BoundColumnFamily<'a>>,
     tx: rocksdb::Transaction<'a, TransactionDB>,
