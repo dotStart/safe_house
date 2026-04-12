@@ -27,7 +27,7 @@ use rocket::serde::{Deserialize, Deserializer, Serialize, Serializer};
 use rocket::Request;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
-use std::ops::{BitAnd, BitOr, Not};
+use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, Not};
 
 pub trait PermissionIndicator {
     fn permission() -> PermissionFlag;
@@ -154,11 +154,23 @@ impl BitOr for PermissionFlag {
     }
 }
 
+impl BitOrAssign for PermissionFlag {
+    fn bitor_assign(&mut self, rhs: Self) {
+        self.0 |= rhs.0
+    }
+}
+
 impl BitAnd for PermissionFlag {
     type Output = Self;
 
     fn bitand(self, rhs: Self) -> Self::Output {
         PermissionFlag(self.0 & rhs.0)
+    }
+}
+
+impl BitAndAssign for PermissionFlag {
+    fn bitand_assign(&mut self, rhs: Self) {
+        self.0 |= rhs.0
     }
 }
 
