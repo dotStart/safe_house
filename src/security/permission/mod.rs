@@ -136,6 +136,11 @@ impl PermissionFlag {
     pub const fn contains(&self, other: &PermissionFlag) -> bool {
         (other.0 & self.0) == other.0
     }
+
+    #[inline]
+    pub const fn contains_any(&self, other: &PermissionFlag) -> bool {
+        (other.0 & self.0) != 0
+    }
 }
 
 impl Not for PermissionFlag {
