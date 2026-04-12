@@ -47,7 +47,7 @@ mod store;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
-    let s = match Config::builder()
+    let s = Config::builder()
         .add_source(ApplicationConfig::default())
         .add_source(File::with_name(ApplicationConfig::LOCATION).required(false))
         .add_source(
@@ -56,29 +56,18 @@ async fn main() -> Result<(), rocket::Error> {
                 .convert_case(Case::Snake),
         )
         .build()
-    {
-        Ok(s) => s,
-        Err(e) => {
-            panic!("Failed to load configuration file: {}", e)
-        }
-    };
+        .expect("Failed to load configuration file");
 
-    let config = match s.try_deserialize::<ApplicationConfig>() {
-        Ok(c) => c,
-        Err(e) => {
-            panic!("Failed to deserialize configuration file: {}", e)
-        }
-    };
+    let config = s
+        .try_deserialize::<ApplicationConfig>()
+        .expect("Failed to deserialize configuration file");
 
     let store_cfg = store::Config {
         path: Path::new(config.database.path.as_str()).to_path_buf(),
         compress: config.database.compress,
     };
 
-    let db = match store::open_database(&store_cfg) {
-        Ok(db) => db,
-        Err(e) => panic!("Database failed initialization: {}", e),
-    };
+    let db = store::open_database(&store_cfg).expect("Database failed initialization");
 
     let document_store = store::document::Repository::new(&db);
     let system_store = match store::system::Repository::new(&db) {
@@ -128,7 +117,7 @@ async fn main() -> Result<(), rocket::Error> {
 }
 
 #[cfg(feature = "ratelimit")]
-pub fn attach_rate_limit(cfg: &ApplicationConfig, rocket: Rocket<Build>) -> Rocket<Build> {
+fn attach_rate_limit(cfg: &ApplicationConfig, rocket: Rocket<Build>) -> Rocket<Build> {
     if !cfg.ratelimit.enabled {
         return rocket;
     }
@@ -137,16 +126,16 @@ pub fn attach_rate_limit(cfg: &ApplicationConfig, rocket: Rocket<Build>) -> Rock
 }
 
 #[cfg(not(feature = "ratelimit"))]
-pub fn attach_rate_limit(cfg: &ApplicationConfig, rocket: Rocket<Build>) -> Rocket<Build> {
+fn attach_rate_limit(cfg: &ApplicationConfig, rocket: Rocket<Build>) -> Rocket<Build> {
     rocket
 }
 
 #[cfg(feature = "ui")]
-pub fn attach_web_ui(rocket: Rocket<Build>) -> Rocket<Build> {
+fn attach_web_ui(rocket: Rocket<Build>) -> Rocket<Build> {
     rocket.attach(assets::stage())
 }
 
 #[cfg(not(feature = "ui"))]
-pub fn attach_web_ui(rocket: Rocket<Build>) -> Rocket<Build> {
+fn attach_web_ui(rocket: Rocket<Build>) -> Rocket<Build> {
     rocket
 }

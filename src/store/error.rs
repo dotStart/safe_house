@@ -18,6 +18,7 @@
 use std::fmt::Display;
 use std::fmt::Formatter;
 
+#[derive(Debug)]
 pub enum StoreError {
     CommitFailure(String),
     RollbackFailure(String),
