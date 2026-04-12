@@ -2198,6 +2198,7 @@ dependencies = [
  "rust-embed",
  "serde",
  "serde_with",
+ "tokio-util",
  "zxcvbn",
 ]
 

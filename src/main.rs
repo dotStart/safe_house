@@ -107,30 +107,16 @@ async fn main() -> Result<(), rocket::Error> {
         }
     };
 
-    let expiry_task_period = Duration::from_mins(config.document.expiration_job_minutes);
-    tokio::spawn(async move {
-        let mut i = interval(expiry_task_period);
-        loop {
-            i.tick().await;
-
-            info!("Removing expired documents ...");
-            match document_store.expire() {
-                Ok(count) => {
-                    info!("Deleted {} expired documents", count);
-                }
-                Err(e) => {
-                    warn!("Failed to delete expired documents: {}", e);
-                }
-            }
-        }
-    });
-
     r = attach_rate_limit(&config, r);
     r = attach_web_ui(r);
 
     r = r
         .attach(routes::stage())
-        .attach(AdHoc::on_liftoff("Dump Config", |_| {
+        .attach(store::document::cleanup::CleanupFairing::new(
+            document_store.clone(),
+            Duration::from_mins(config.document.expiration_job_minutes),
+        ))
+        .attach(AdHoc::on_liftoff("Finalize Startup", |_| {
             Box::pin(async move {
                 config.dump_to_log();
             })

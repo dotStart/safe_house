@@ -25,6 +25,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 pub mod entity;
+pub mod cleanup;
 
 pub const FAMILY_NAME: &'static str = "document";
 
