@@ -15,23 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+use crate::deny_latest_schema;
+use crate::panic_latest_schema;
 use crate::store::error::StoreError;
-use std::fmt::{Display, Formatter};
+use crate::store::system::SchemaVersion;
 
-pub enum SystemStoreError {
-    UnknownSchemaVersion(u64),
-    GenericStoreError(StoreError),
-}
-
-impl Display for SystemStoreError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SystemStoreError::UnknownSchemaVersion(version) => {
-                f.write_fmt(format_args!("unknown system schema version:  {}", version))
-            }
-            SystemStoreError::GenericStoreError(e) => {
-                f.write_fmt(format_args!("store error: {}", e))
-            }
-        }
+pub trait Migrate: Sized {
+    fn migrate(&self, from_version: SchemaVersion) -> Result<(), StoreError> {
+        deny_latest_schema!(from_version);
+        Ok(())
     }
 }

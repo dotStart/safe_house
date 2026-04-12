@@ -15,59 +15,66 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-pub mod error;
+pub mod migration;
 
+use std::fmt::{Display, Formatter};
 use crate::store::db::RawStore;
 use crate::store::error::StoreError;
-use crate::store::system::error::SystemStoreError;
 use byteorder::{BigEndian, ByteOrder};
+use rand::rngs::ThreadRng;
+use rand::Rng;
 use rocksdb::TransactionDB;
 use std::sync::Arc;
-use rand::Rng;
-use rand::rngs::ThreadRng;
 
 pub const FAMILY_NAME: &'static str = "safe_house";
 
 const SCHEMA_VERSION_KEY: &'static str = "schema_version";
 const JWT_SECRET_KEY: &'static str = "jwt_secret";
 
-const SCHEMA_VERSION: u64 = 0;
-
+#[derive(Clone)]
 pub struct Repository {
     store: RawStore,
 }
 
 impl Repository {
-    pub fn new(db: &Arc<TransactionDB>) -> Result<Self, SystemStoreError> {
+    pub fn new(db: &Arc<TransactionDB>) -> Self {
         let store = RawStore::new(db, FAMILY_NAME);
-        let repository = Self { store };
-
-        if let Some(version) = repository
-            .schema_version()
-            .map_err(|e| SystemStoreError::GenericStoreError(e))?
-        {
-            if version != SCHEMA_VERSION {
-                return Err(SystemStoreError::UnknownSchemaVersion(version));
-            }
-        } else {
-            repository
-                .set_schema_version(SCHEMA_VERSION)
-                .map_err(|e| SystemStoreError::GenericStoreError(e))?;
-        }
-
-        Ok(repository)
+        Self { store }
     }
 
-    pub fn schema_version(&self) -> Result<Option<u64>, StoreError> {
+    pub fn check_migration(&self) -> Result<MigrationResult, StoreError> {
+        Ok(match self.schema_version()? {
+            Some(version) => {
+                if version == SchemaVersion::LATEST {
+                    MigrationResult::UpToDate(version)
+                } else if version < SchemaVersion::LATEST {
+                    MigrationResult::Required(version)
+                } else {
+                    MigrationResult::UnknownVersion(version)
+                }
+            }
+            None => {
+                self.complete_migration()?;
+                MigrationResult::UpToDate(SchemaVersion::LATEST)
+            }
+        })
+    }
+
+    pub fn complete_migration(&self) -> Result<SchemaVersion, StoreError> {
+        self.set_schema_version(SchemaVersion::LATEST)?;
+        Ok(SchemaVersion::LATEST)
+    }
+
+    pub fn schema_version(&self) -> Result<Option<SchemaVersion>, StoreError> {
         Ok(self
             .store
             .load(SCHEMA_VERSION_KEY)?
-            .map(|encoded| BigEndian::read_u64(encoded.as_ref())))
+            .and_then(|encoded| SchemaVersion::from_u64(BigEndian::read_u64(encoded.as_ref()))))
     }
 
-    fn set_schema_version(&self, version: u64) -> Result<(), StoreError> {
+    fn set_schema_version(&self, version: SchemaVersion) -> Result<(), StoreError> {
         let mut encoded = [0; 8];
-        BigEndian::write_u64(encoded.as_mut(), version);
+        BigEndian::write_u64(encoded.as_mut(), version.to_u64());
 
         self.store.store(SCHEMA_VERSION_KEY, &Vec::from(encoded))?;
         Ok(())
@@ -100,4 +107,86 @@ impl Repository {
 
         Ok(key)
     }
+}
+
+macro_rules! schema_version {
+    ( @latest $head:ident, ) => {
+        pub const LATEST: SchemaVersion = Self::$head;
+    };
+    ( @latest $_head:ident, $($tail:ident,)* ) => {
+        schema_version!(@latest $($tail,)*);
+    };
+    ( $($name:ident = $value:expr),* ) => {
+        #[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq)]
+        pub enum SchemaVersion {
+            $(
+                $name,
+            )*
+        }
+
+        impl SchemaVersion {
+            schema_version!(@latest $($name,)*);
+
+            pub const fn from_u64(value: u64) -> Option<Self> {
+                match value {
+                    $(
+                        $value => Some(Self::$name),
+                    )*
+                    _ => None,
+                }
+            }
+
+            pub const fn to_u64(&self) -> u64 {
+                match self {
+                    $(
+                        Self::$name => $value,
+                    )*
+                }
+            }
+
+            pub fn is_latest(&self) -> bool {
+                *self == Self::LATEST
+            }
+        }
+
+        impl Display for SchemaVersion {
+            fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+                match self {
+                    $(
+                        Self::$name => f.write_str($value.to_string().as_str()),
+                    )*
+                }
+            }
+        }
+    }
+}
+
+schema_version!(Initial = 0, V1 = 1);
+
+pub enum MigrationResult {
+    /// Indicates that store migration is required before the application can be used.
+    Required(SchemaVersion),
+
+    /// Indicates that the schema version is unknown and that the application should thus shut down
+    /// before damaging the store.
+    UnknownVersion(SchemaVersion),
+
+    /// Indicates that the store is up to date.
+    UpToDate(SchemaVersion),
+}
+
+#[macro_export]
+macro_rules! panic_latest_schema {
+    () => {
+        panic!("Migration from latest is unsupported")
+    };
+}
+
+#[macro_export]
+macro_rules! deny_latest_schema {
+    ($name:ident) => {
+        if $name.is_latest() {
+            panic_latest_schema!()
+        }
+    };
 }

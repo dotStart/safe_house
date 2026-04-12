@@ -18,6 +18,7 @@
 use crate::store::db::{Store, StoreOps};
 use crate::store::document::entity::Parameters;
 use crate::store::error::StoreError;
+use crate::store::system::migration::Migrate;
 use crate::store::types::Clover;
 use chrono::Utc;
 use rocksdb::{IteratorMode, TransactionDB};
@@ -180,6 +181,8 @@ impl Repository {
         Ok(true)
     }
 }
+
+impl Migrate for Repository {}
 
 impl Clone for Repository {
     fn clone(&self) -> Self {

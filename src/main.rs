@@ -29,10 +29,11 @@ extern crate rocket;
 use crate::cfg::security::AuthMethod;
 use crate::cfg::ApplicationConfig;
 use crate::security::token::InternalTokenProvider;
+use crate::store::system::migration::Migrate;
+use crate::store::system::{MigrationResult, SchemaVersion};
 use config::{Case, Config, Environment, File};
 use rocket::fairing::AdHoc;
-use rocket::tokio::time::interval;
-use rocket::{tokio, Build, Rocket};
+use rocket::{Build, Rocket};
 use std::path::Path;
 use std::time::Duration;
 
@@ -69,11 +70,9 @@ async fn main() -> Result<(), rocket::Error> {
 
     let db = store::open_database(&store_cfg).expect("Database failed initialization");
 
+    let system_store = store::system::Repository::new(&db);
     let document_store = store::document::Repository::new(&db);
-    let system_store = match store::system::Repository::new(&db) {
-        Ok(store) => store,
-        Err(e) => panic!("System store failed initialization: {}", e),
-    };
+    let internal_user_store = store::internal_user::Repository::new(&db);
 
     let mut r = rocket::build()
         .manage(config.clone())
@@ -84,13 +83,12 @@ async fn main() -> Result<(), rocket::Error> {
             r = r.manage(security::auth_none::stage());
         }
         AuthMethod::Internal => {
-            let internal_user_store = store::internal_user::Repository::new(&db);
-            let token_provider = InternalTokenProvider::new(system_store);
+            let token_provider = InternalTokenProvider::new(system_store.clone());
 
             r = r
                 .manage(internal_user_store.clone())
                 .attach(security::auth_internal::stage(
-                    internal_user_store,
+                    internal_user_store.clone(),
                     token_provider,
                 ));
         }
@@ -101,8 +99,13 @@ async fn main() -> Result<(), rocket::Error> {
 
     r = r
         .attach(routes::stage())
-        .attach(store::document::cleanup::CleanupFairing::new(
+        .attach(migrate(
+            system_store,
             document_store.clone(),
+            internal_user_store,
+        ))
+        .attach(store::document::cleanup::CleanupFairing::new(
+            document_store,
             Duration::from_mins(config.document.expiration_job_minutes),
         ))
         .attach(AdHoc::on_liftoff("Finalize Startup", |_| {
@@ -114,6 +117,43 @@ async fn main() -> Result<(), rocket::Error> {
     let _rocket = r.launch().await?;
 
     Ok(())
+}
+
+fn migrate(
+    system_store: store::system::Repository,
+    document_store: store::document::Repository,
+    internal_user_store: store::internal_user::Repository,
+) -> AdHoc {
+    AdHoc::try_on_ignite("Prepare Startup", |rocket| async move {
+        match system_store.check_migration() {
+            Ok(MigrationResult::UpToDate(version)) => {
+                info!("Store schema is up to date (v{})", version);
+            }
+            Ok(MigrationResult::Required(version)) => {
+                info!(
+                    "Store schema migration required (current: {}, target: {})",
+                    version,
+                    SchemaVersion::LATEST
+                );
+                document_store
+                    .migrate(version.clone())
+                    .expect("Failed to migrate document store");
+                internal_user_store
+                    .migrate(version.clone())
+                    .expect("Failed to migrate internal user store");
+            }
+            Ok(MigrationResult::UnknownVersion(version)) => {
+                panic!("Unknown store schema (v{})", version)
+            }
+            Err(e) => panic!("Store migration check failed: {}", e),
+        };
+
+        system_store
+            .complete_migration()
+            .expect("Failed to complete migration");
+
+        Ok(rocket)
+    })
 }
 
 #[cfg(feature = "ratelimit")]
