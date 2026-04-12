@@ -15,23 +15,34 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-use crate::store::error::StoreError;
-use std::fmt::{Display, Formatter};
+#[cfg(feature = "ratelimit")]
+use crate::cfg::ratelimit::RateLimitConfig;
+use crate::ratelimit::policy::Policy;
+#[cfg(feature = "ratelimit")]
+use governor::Quota;
 
-pub enum SystemStoreError {
-    UnknownSchemaVersion(u64),
-    GenericStoreError(StoreError),
+pub struct CreateDocument;
+
+impl Policy for CreateDocument {
+    fn name() -> &'static str {
+        "create_document"
+    }
+
+    #[cfg(feature = "ratelimit")]
+    fn quota(cfg: &RateLimitConfig) -> Quota {
+        Quota::per_hour(cfg.document_creations_per_hour)
+    }
 }
 
-impl Display for SystemStoreError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SystemStoreError::UnknownSchemaVersion(version) => {
-                f.write_fmt(format_args!("unknown system schema version:  {}", version))
-            }
-            SystemStoreError::GenericStoreError(e) => {
-                f.write_fmt(format_args!("store error: {}", e))
-            }
-        }
+pub struct ViewDocument;
+
+impl Policy for ViewDocument {
+    fn name() -> &'static str {
+        "view_document"
+    }
+
+    #[cfg(feature = "ratelimit")]
+    fn quota(cfg: &RateLimitConfig) -> Quota {
+        Quota::per_hour(cfg.document_views_per_hour)
     }
 }

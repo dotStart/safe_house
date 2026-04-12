@@ -29,10 +29,11 @@ extern crate rocket;
 use crate::cfg::security::AuthMethod;
 use crate::cfg::ApplicationConfig;
 use crate::security::token::InternalTokenProvider;
+use crate::store::system::migration::Migrate;
+use crate::store::system::{MigrationResult, SchemaVersion};
 use config::{Case, Config, Environment, File};
 use rocket::fairing::AdHoc;
-use rocket::tokio::time::interval;
-use rocket::{tokio, Build, Rocket};
+use rocket::{Build, Rocket};
 use std::path::Path;
 use std::time::Duration;
 
@@ -40,14 +41,15 @@ use std::time::Duration;
 mod assets;
 mod cfg;
 mod feature;
+mod ratelimit;
 mod routes;
 mod security;
 mod store;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
-    let s = match Config::builder()
-        .add_source(ApplicationConfig::defaults())
+    let s = Config::builder()
+        .add_source(ApplicationConfig::default())
         .add_source(File::with_name(ApplicationConfig::LOCATION).required(false))
         .add_source(
             Environment::with_prefix("safehouse")
@@ -55,35 +57,22 @@ async fn main() -> Result<(), rocket::Error> {
                 .convert_case(Case::Snake),
         )
         .build()
-    {
-        Ok(s) => s,
-        Err(e) => {
-            panic!("Failed to load configuration file: {}", e)
-        }
-    };
+        .expect("Failed to load configuration file");
 
-    let config = match s.try_deserialize::<ApplicationConfig>() {
-        Ok(c) => c,
-        Err(e) => {
-            panic!("Failed to deserialize configuration file: {}", e)
-        }
-    };
+    let config = s
+        .try_deserialize::<ApplicationConfig>()
+        .expect("Failed to deserialize configuration file");
 
     let store_cfg = store::Config {
         path: Path::new(config.database.path.as_str()).to_path_buf(),
         compress: config.database.compress,
     };
 
-    let db = match store::open_database(&store_cfg) {
-        Ok(db) => db,
-        Err(e) => panic!("Database failed initialization: {}", e),
-    };
+    let db = store::open_database(&store_cfg).expect("Database failed initialization");
 
+    let system_store = store::system::Repository::new(&db);
     let document_store = store::document::Repository::new(&db);
-    let system_store = match store::system::Repository::new(&db) {
-        Ok(store) => store,
-        Err(e) => panic!("System store failed initialization: {}", e),
-    };
+    let internal_user_store = store::internal_user::Repository::new(&db);
 
     let mut r = rocket::build()
         .manage(config.clone())
@@ -94,41 +83,32 @@ async fn main() -> Result<(), rocket::Error> {
             r = r.manage(security::auth_none::stage());
         }
         AuthMethod::Internal => {
-            let internal_user_store = store::internal_user::Repository::new(&db);
-            let token_provider = InternalTokenProvider::new(system_store);
+            let token_provider = InternalTokenProvider::new(system_store.clone());
 
             r = r
                 .manage(internal_user_store.clone())
                 .attach(security::auth_internal::stage(
-                    internal_user_store,
+                    internal_user_store.clone(),
                     token_provider,
                 ));
         }
     };
 
-    let expiry_task_period = Duration::from_mins(config.document.expiration_job_minutes);
-    tokio::spawn(async move {
-        let mut i = interval(expiry_task_period);
-        loop {
-            i.tick().await;
-
-            info!("Removing expired documents ...");
-            match document_store.expire() {
-                Ok(count) => {
-                    info!("Deleted {} expired documents", count);
-                }
-                Err(e) => {
-                    warn!("Failed to delete expired documents: {}", e);
-                }
-            }
-        }
-    });
-
+    r = attach_rate_limit(&config, r);
     r = attach_web_ui(r);
 
     r = r
         .attach(routes::stage())
-        .attach(AdHoc::on_liftoff("Dump Config", |_| {
+        .attach(migrate(
+            system_store,
+            document_store.clone(),
+            internal_user_store,
+        ))
+        .attach(store::document::cleanup::CleanupFairing::new(
+            document_store,
+            Duration::from_mins(config.document.expiration_job_minutes),
+        ))
+        .attach(AdHoc::on_liftoff("Finalize Startup", |_| {
             Box::pin(async move {
                 config.dump_to_log();
             })
@@ -139,12 +119,63 @@ async fn main() -> Result<(), rocket::Error> {
     Ok(())
 }
 
+fn migrate(
+    system_store: store::system::Repository,
+    document_store: store::document::Repository,
+    internal_user_store: store::internal_user::Repository,
+) -> AdHoc {
+    AdHoc::try_on_ignite("Prepare Startup", |rocket| async move {
+        match system_store.check_migration() {
+            Ok(MigrationResult::UpToDate(version)) => {
+                info!("Store schema is up to date (v{})", version);
+            }
+            Ok(MigrationResult::Required(version)) => {
+                info!(
+                    "Store schema migration required (current: {}, target: {})",
+                    version,
+                    SchemaVersion::LATEST
+                );
+                document_store
+                    .migrate(version.clone())
+                    .expect("Failed to migrate document store");
+                internal_user_store
+                    .migrate(version.clone())
+                    .expect("Failed to migrate internal user store");
+            }
+            Ok(MigrationResult::UnknownVersion(version)) => {
+                panic!("Unknown store schema (v{})", version)
+            }
+            Err(e) => panic!("Store migration check failed: {}", e),
+        };
+
+        system_store
+            .complete_migration()
+            .expect("Failed to complete migration");
+
+        Ok(rocket)
+    })
+}
+
+#[cfg(feature = "ratelimit")]
+fn attach_rate_limit(cfg: &ApplicationConfig, rocket: Rocket<Build>) -> Rocket<Build> {
+    if !cfg.ratelimit.enabled {
+        return rocket;
+    }
+
+    rocket.attach(ratelimit::stage())
+}
+
+#[cfg(not(feature = "ratelimit"))]
+fn attach_rate_limit(cfg: &ApplicationConfig, rocket: Rocket<Build>) -> Rocket<Build> {
+    rocket
+}
+
 #[cfg(feature = "ui")]
-pub fn attach_web_ui(rocket: Rocket<Build>) -> Rocket<Build> {
+fn attach_web_ui(rocket: Rocket<Build>) -> Rocket<Build> {
     rocket.attach(assets::stage())
 }
 
 #[cfg(not(feature = "ui"))]
-pub fn attach_web_ui(rocket: Rocket<Build>) -> Rocket<Build> {
+fn attach_web_ui(rocket: Rocket<Build>) -> Rocket<Build> {
     rocket
 }

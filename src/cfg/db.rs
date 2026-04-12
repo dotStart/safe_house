@@ -25,13 +25,6 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn defaults() -> Self {
-        Self {
-            path: "./data".to_string(),
-            compress: true,
-        }
-    }
-
     pub fn dump_to_log(&self) {
         info!("   >> db.path: {}", self.path);
         info!("   >> db.comress: {}", self.compress);
@@ -51,5 +44,14 @@ impl Database {
                 ),
             ])),
         )
+    }
+}
+
+impl Default for Database {
+    fn default() -> Self {
+        Self {
+            path: "./data".to_string(),
+            compress: true,
+        }
     }
 }

@@ -93,6 +93,10 @@ impl Parameters {
             false
         })
     }
+
+    pub fn has_any_permission(&self, permission: PermissionFlag) -> bool {
+        self.permissions.contains_any(&permission)
+    }
 }
 
 impl Document for Parameters {

@@ -25,13 +25,6 @@ pub struct Document {
 }
 
 impl Document {
-    pub fn defaults() -> Self {
-        Self {
-            expiration_job_minutes: 30,
-            key_derivation_rounds: 600_000,
-        }
-    }
-
     pub fn dump_to_log(&self) {
         info!(
             "   >> document.expiration_job_minutes: {}",
@@ -57,5 +50,14 @@ impl Document {
                 ),
             ])),
         )
+    }
+}
+
+impl Default for Document {
+    fn default() -> Self {
+        Self {
+            expiration_job_minutes: 30,
+            key_derivation_rounds: 600_000,
+        }
     }
 }

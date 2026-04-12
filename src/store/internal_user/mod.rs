@@ -17,9 +17,13 @@
  */
 pub mod entity;
 
+use crate::security::permission::PermissionFlag;
 use crate::store::db::{Store, StoreOps};
 use crate::store::error::StoreError;
 use crate::store::internal_user::entity::{Parameters, Username};
+use crate::store::system::migration::Migrate;
+use crate::store::system::SchemaVersion;
+use crate::{deny_latest_schema, panic_latest_schema};
 use rocksdb::{IteratorMode, TransactionDB};
 use std::sync::Arc;
 
@@ -88,6 +92,36 @@ impl Repository {
 
     pub fn delete(&self, name: &Username) -> Result<(), StoreError> {
         self.store.delete(name.as_str())
+    }
+}
+
+impl Migrate for Repository {
+    fn migrate(&self, from_version: SchemaVersion) -> Result<(), StoreError> {
+        deny_latest_schema!(from_version);
+
+        match from_version {
+            SchemaVersion::Initial => {
+                let tx = self.store.transaction()?;
+                let it = tx.iterator(IteratorMode::Start)?;
+
+                for e in it {
+                    match e {
+                        Ok((key, mut params)) => {
+                            if params.has_any_permission(PermissionFlag::All) {
+                                params.permissions |= PermissionFlag::BypassRateLimit;
+                                tx.store(key.as_str(), params.as_ref())?;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+
+                tx.commit()?;
+            }
+            SchemaVersion::V1 => panic_latest_schema!(),
+        }
+
+        Ok(())
     }
 }
 

@@ -59,6 +59,7 @@ pub struct Config {
     pub compress: bool,
 }
 
+#[derive(Debug)]
 pub struct DatabaseInitError(String);
 
 impl Display for DatabaseInitError {

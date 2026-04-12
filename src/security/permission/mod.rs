@@ -27,7 +27,7 @@ use rocket::serde::{Deserialize, Deserializer, Serialize, Serializer};
 use rocket::Request;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
-use std::ops::{BitAnd, BitOr, Not};
+use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, Not};
 
 pub trait PermissionIndicator {
     fn permission() -> PermissionFlag;
@@ -66,40 +66,80 @@ macro_rules! permission_indicator {
 #[derive(Clone, Copy, Debug)]
 pub struct PermissionFlag(u64);
 
+macro_rules! declare_permissions {
+    (@generate $idx:expr, $final:ident, ) => {
+        pub const $final: PermissionFlag = PermissionFlag(1 << ($idx));
+    };
+    (@generate $idx:expr, $head:ident, $($tail:ident,)*) => {
+        pub const $head: PermissionFlag = PermissionFlag(1 << ($idx));
+        declare_permissions!(@generate $idx + 1, $($tail,)*);
+    };
+    ($offset:expr, $($name:ident),*) => {
+        declare_permissions!(@generate $offset, $($name,)*);
+    };
+}
+
+macro_rules! declare_permission_aggregator {
+    ($name:ident, $($member:ident),*) => {
+        pub const $name: PermissionFlag = PermissionFlag(
+            $(
+                Self::$member.0 |
+            )* 0u64
+        );
+    };
+}
+
+macro_rules! declare_permission_group {
+    ($group:ident, $offset:expr, $($member:ident),*) => {
+        declare_permissions!($offset $(,$member)*);
+        declare_permission_aggregator!($group $(,$member)*);
+    };
+}
+
 #[allow(non_upper_case_globals)]
 impl PermissionFlag {
-    pub const ViewAnyDocument: PermissionFlag = PermissionFlag(1 << 0);
-    pub const CreateDocument: PermissionFlag = PermissionFlag(1 << 1);
-    pub const DeleteOwnDocument: PermissionFlag = PermissionFlag(1 << 2);
-    pub const DeleteAnyDocument: PermissionFlag = PermissionFlag(1 << 3);
-    pub const AllDocument: PermissionFlag = PermissionFlag(
-        Self::ViewAnyDocument.0
-            | Self::CreateDocument.0
-            | Self::DeleteOwnDocument.0
-            | Self::DeleteAnyDocument.0,
+    declare_permission_group!(
+        AllDocument,
+        0,
+        ViewAnyDocument,
+        CreateDocument,
+        DeleteOwnDocument,
+        DeleteAnyDocument
     );
-
-    pub const ViewUser: PermissionFlag = PermissionFlag(1 << 8);
-    pub const CreateUser: PermissionFlag = PermissionFlag(1 << 9);
-    pub const EditOwnUser: PermissionFlag = PermissionFlag(1 << 10);
-    pub const EditAnyUser: PermissionFlag = PermissionFlag(1 << 11);
-    pub const DeleteOwnUser: PermissionFlag = PermissionFlag(1 << 12);
-    pub const DeleteAnyUser: PermissionFlag = PermissionFlag(1 << 13);
-    pub const AllUser: PermissionFlag = PermissionFlag(
-        Self::ViewUser.0
-            | Self::CreateUser.0
-            | Self::EditOwnUser.0
-            | Self::EditAnyUser.0
-            | Self::DeleteOwnUser.0
-            | Self::DeleteAnyUser.0,
+    declare_permission_group!(
+        AllUser,
+        8,
+        ViewUser,
+        CreateUser,
+        EditOwnUser,
+        EditAnyUser,
+        DeleteOwnUser,
+        DeleteAnyUser
     );
+    declare_permission_group!(AllSystem, 24, BypassRateLimit);
 
     pub const None: PermissionFlag = PermissionFlag(0);
-    pub const All: PermissionFlag = PermissionFlag(Self::AllDocument.0 | Self::AllUser.0);
+    declare_permission_aggregator!(
+        Admin,
+        ViewAnyDocument,
+        DeleteAnyDocument,
+        ViewUser,
+        CreateUser,
+        EditAnyUser,
+        DeleteAnyUser,
+        AllSystem
+    );
+    declare_permission_aggregator!(Safe, AllDocument, AllUser);
+    declare_permission_aggregator!(All, AllDocument, AllUser, AllSystem);
 
     #[inline]
-    pub fn contains(&self, other: &PermissionFlag) -> bool {
+    pub const fn contains(&self, other: &PermissionFlag) -> bool {
         (other.0 & self.0) == other.0
+    }
+
+    #[inline]
+    pub const fn contains_any(&self, other: &PermissionFlag) -> bool {
+        (other.0 & self.0) != 0
     }
 }
 
@@ -119,11 +159,23 @@ impl BitOr for PermissionFlag {
     }
 }
 
+impl BitOrAssign for PermissionFlag {
+    fn bitor_assign(&mut self, rhs: Self) {
+        self.0 |= rhs.0
+    }
+}
+
 impl BitAnd for PermissionFlag {
     type Output = Self;
 
     fn bitand(self, rhs: Self) -> Self::Output {
         PermissionFlag(self.0 & rhs.0)
+    }
+}
+
+impl BitAndAssign for PermissionFlag {
+    fn bitand_assign(&mut self, rhs: Self) {
+        self.0 |= rhs.0
     }
 }
 

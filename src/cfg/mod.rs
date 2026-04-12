@@ -17,31 +17,26 @@
  */
 pub mod db;
 pub mod document;
+pub mod ratelimit;
 pub mod security;
 
 use crate::cfg::db::Database;
 use crate::cfg::document::Document;
+use crate::cfg::ratelimit::RateLimitConfig;
 use crate::cfg::security::Security;
 use config::{ConfigError, Map, Source, Value};
 use rocket::serde::Deserialize;
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Default, Clone, Deserialize, Debug)]
 pub struct ApplicationConfig {
     pub database: Database,
     pub security: Security,
     pub document: Document,
+    pub ratelimit: RateLimitConfig,
 }
 
 impl ApplicationConfig {
     pub const LOCATION: &'static str = "safe_house.toml";
-
-    pub fn defaults() -> Self {
-        Self {
-            database: Database::defaults(),
-            security: Security::defaults(),
-            document: Document::defaults(),
-        }
-    }
 
     pub fn dump_to_log(&self) {
         info!("safe_house Configuration:");
@@ -49,6 +44,7 @@ impl ApplicationConfig {
         self.database.dump_to_log();
         self.security.dump_to_log();
         self.document.dump_to_log();
+        self.ratelimit.dump_to_log();
     }
 }
 
@@ -63,6 +59,7 @@ impl Source for ApplicationConfig {
             ("database".to_string(), self.database.collect()),
             ("security".to_string(), self.security.collect()),
             ("document".to_string(), self.document.collect()),
+            ("ratelimit".to_string(), self.ratelimit.collect()),
         ]))
     }
 }

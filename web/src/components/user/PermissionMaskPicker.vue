@@ -110,5 +110,18 @@ const model = defineModel<number>();
           v-model="model"/>
       </fieldset>
     </article>
+    <article>
+      <header>system</header>
+
+      <fieldset>
+        <PermissionCheckbox
+          label="bypass ratelimit"
+          description="bypass endpoint rate limits"
+          :permission="Permission.BypassRateLimit"
+          :disabled="disabled"
+          :mask="modelValue"
+          v-model="model"/>
+      </fieldset>
+    </article>
   </section>
 </template>

@@ -53,3 +53,44 @@ expiration_job_minutes = 30
 # Environment: SAFEHOUSE_DOCUMENT_KEY_DERIVATION_ROUNDS
 # Default: 600_000
 key_derivation_rounds = 600000
+
+[ratelimit]
+# Rate Limit Enabled
+# ------------------
+# Whether rate limiting shall be applied to vulnerable endpoints.
+#
+# Default: true
+enabled = true
+
+# Login Burst Limit
+# -----------------
+# Maximum number of burst login requests permitted to be sent at a given time.
+#
+# Default: 8
+auth_login_burst = 8
+
+# Login Limit Regain Period
+# -------------------------
+# Defines the amount of minutes that have to pass before another request to the login endpoint is
+# added to the remaining quota.
+#
+# This value effectively describes the maximum frequency at which logins may be performed (e.g.
+# every 10 minutes if set to 10).
+#
+# Default: 10
+auth_login_regain_minutes = 10
+
+# Document Creation Limit
+# -----------------------
+# Maximum number of documents which may be created per hour from a given network address.
+#
+# Default: 10
+document_creations_per_hour = 10
+
+# Document View Limit
+# -------------------
+# Maximum number of document views which may be performed within a given hour for a given network
+# address.
+#
+# Default: 30
+document_views_per_hour = 30
