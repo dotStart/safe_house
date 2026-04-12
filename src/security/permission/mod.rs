@@ -133,7 +133,7 @@ impl PermissionFlag {
     declare_permission_aggregator!(All, AllDocument, AllUser, AllSystem);
 
     #[inline]
-    pub fn contains(&self, other: &PermissionFlag) -> bool {
+    pub const fn contains(&self, other: &PermissionFlag) -> bool {
         (other.0 & self.0) == other.0
     }
 }
