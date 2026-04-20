@@ -94,8 +94,6 @@ async function resize_canvas() {
     return;
   }
 
-  console.log(typeGuess);
-
   fileType.value = typeGuess.mime;
   const blob = new Blob([buffer], {type: typeGuess.mime});
   if (typeGuess.mime.startsWith("video/")) {
