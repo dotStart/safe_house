@@ -29,6 +29,7 @@ const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
 const fileType = ref("");
 const text = ref<string | null>(null);
 const image = ref<Blob | null>(null);
+const video = ref<string | null>(null);
 const size_multiplier = ref<number>(1);
 
 function draw_blob(): Promise<void> {
@@ -55,8 +56,6 @@ function draw_blob(): Promise<void> {
     img.onload = () => {
       const rect = container.value?.getBoundingClientRect();
       const container_multiplier = !!rect ? Math.min(1, rect.width / img.width) : 1;
-
-      console.log(rect, img.width, container_multiplier);
 
       c.width = img.width * size_multiplier.value * container_multiplier;
       c.height = img.height * size_multiplier.value * container_multiplier;
@@ -95,7 +94,15 @@ async function resize_canvas() {
     return;
   }
 
-  image.value = new Blob([buffer], {type: typeGuess.mime});
+  fileType.value = typeGuess.mime;
+  const blob = new Blob([buffer], {type: typeGuess.mime});
+  if (typeGuess.mime.startsWith("video/")) {
+    video.value = URL.createObjectURL(blob);
+    text.value = "";
+    return
+  }
+
+  image.value = blob;
   await draw_blob();
 
   text.value = "";
@@ -108,11 +115,19 @@ section {
   align-items: center;
   justify-content: center;
 }
+
+video {
+  width: 100%;
+  height: auto;
+}
 </style>
 
 <template>
   <section ref="container">
     <textarea readonly v-if="!!text" v-model="text" rows="30"></textarea>
+    <video controls v-if="!!video">
+      <source :src="video" :type="fileType"/>
+    </video>
     <div class="overflow-auto">
       <canvas
         ref="canvas"
