@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import {ref, useTemplateRef} from "vue";
 
-const ACCEPTABLE_TYPES = ["text/plain", "image/png", "image/jpeg"];
+const ACCEPTABLE_TYPES = ["text/plain", "image/png", "image/jpeg", "video/mp4", "video/mpeg", "video/webm"];
 
 const emit = defineEmits<{
   change: [file: File | null]
