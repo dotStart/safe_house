@@ -58,7 +58,7 @@ features = ["rust_crypto"]
 default-features = false
 
 [dependencies.rand]
-version = "0.10.0"
+version = "0.10.1"
 features = ["thread_rng"]
 
 [dependencies.rocket]
