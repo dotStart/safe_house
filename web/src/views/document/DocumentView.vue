@@ -171,7 +171,7 @@ async function view() {
               <div class="parameter">
                 <p class="title">owner</p>
                 <p class="value" v-if="doc.owner == null">unknown</p>
-                <p class="value" v-else :title="doc.owner.id">{{ doc.owner.display_name }}</p>
+                <p class="value" v-else :title="doc.owner.id">{{ doc.owner.display_name || doc.owner.id }}</p>
               </div>
               <div class="parameter">
                 <p class="title">created at</p>
