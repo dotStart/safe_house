@@ -21,8 +21,8 @@ use crate::security::permission::PermissionFlag;
 use crate::store::db::{Store, StoreOps};
 use crate::store::error::StoreError;
 use crate::store::internal_user::entity::{Parameters, Username};
-use crate::store::system::migration::Migrate;
 use crate::store::system::SchemaVersion;
+use crate::store::system::migration::Migrate;
 use crate::{deny_latest_schema, panic_latest_schema};
 use rocksdb::{IteratorMode, TransactionDB};
 use std::sync::Arc;
@@ -118,7 +118,8 @@ impl Migrate for Repository {
 
                 tx.commit()?;
             }
-            SchemaVersion::V1 => panic_latest_schema!(),
+            SchemaVersion::V1 => {} // nothing to do
+            SchemaVersion::V2 => panic_latest_schema!(),
         }
 
         Ok(())

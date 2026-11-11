@@ -26,8 +26,8 @@
 #[macro_use]
 extern crate rocket;
 
-use crate::cfg::security::AuthMethod;
 use crate::cfg::ApplicationConfig;
+use crate::cfg::security::AuthMethod;
 use crate::security::token::InternalTokenProvider;
 use crate::store::system::migration::Migrate;
 use crate::store::system::{MigrationResult, SchemaVersion};
@@ -135,6 +135,9 @@ fn migrate(
                     version,
                     SchemaVersion::LATEST
                 );
+                system_store
+                    .migrate(version.clone())
+                    .expect("Failed to migrate system store");
                 document_store
                     .migrate(version.clone())
                     .expect("Failed to migrate document store");

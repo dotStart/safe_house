@@ -17,19 +17,21 @@
  */
 pub mod migration;
 
-use std::fmt::{Display, Formatter};
 use crate::store::db::RawStore;
 use crate::store::error::StoreError;
+use crate::store::system::migration::Migrate;
 use byteorder::{BigEndian, ByteOrder};
-use rand::rngs::ThreadRng;
 use rand::Rng;
+use rand::rngs::ThreadRng;
 use rocksdb::TransactionDB;
+use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
 pub const FAMILY_NAME: &'static str = "safe_house";
 
 const SCHEMA_VERSION_KEY: &'static str = "schema_version";
 const JWT_SECRET_KEY: &'static str = "jwt_secret";
+const JWT_SECRET_KEY_LENGTH: usize = 32;
 
 #[derive(Clone)]
 pub struct Repository {
@@ -84,11 +86,13 @@ impl Repository {
         let tx = self.store.transaction()?;
 
         let stored = tx.load(JWT_SECRET_KEY)?;
-        if let Some(key) = stored {
+        if let Some(key) = stored
+            && key.len() >= JWT_SECRET_KEY_LENGTH
+        {
             return Ok(key);
         }
 
-        let mut key = Vec::<u8>::with_capacity(32);
+        let mut key = vec![0u8; JWT_SECRET_KEY_LENGTH];
         let mut rng = ThreadRng::default();
         rng.fill_bytes(key.as_mut());
 
@@ -99,7 +103,7 @@ impl Repository {
     }
 
     pub fn generate_jwt_secret(&self) -> Result<Vec<u8>, StoreError> {
-        let mut key = Vec::<u8>::with_capacity(32);
+        let mut key = vec![0u8; JWT_SECRET_KEY_LENGTH];
         let mut rng = ThreadRng::default();
         rng.fill_bytes(key.as_mut());
 
@@ -161,7 +165,7 @@ macro_rules! schema_version {
     }
 }
 
-schema_version!(Initial = 0, V1 = 1);
+schema_version!(Initial = 0, V1 = 1, V2 = 2);
 
 pub enum MigrationResult {
     /// Indicates that store migration is required before the application can be used.
@@ -189,4 +193,15 @@ macro_rules! deny_latest_schema {
             panic_latest_schema!()
         }
     };
+}
+
+impl Migrate for Repository {
+    fn migrate(&self, from_version: SchemaVersion) -> Result<(), StoreError> {
+        deny_latest_schema!(from_version);
+
+        // in prior versions, we failed to correctly generate a JWT secret so on migration we need
+        // to ensure that a new secret is generated - this applies to the initial and v1 schemas
+        self.generate_jwt_secret()?;
+        Ok(())
+    }
 }
